@@ -1,1 +1,113 @@
+#start-screen{
+    background-image: url("images/background1.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width:100vw;
+    height:100vh;
+    display: flex;
+        
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+   
+}
+#start-screen .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 35px 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+}
+
+#start-screen .logo {
+    color: #000;
+    text-decoration: none;
+    font-size: 28px;
+    font-weight: 400;
+}
+#start-screen .menu {
+    display: flex;
+    gap: 70px;
+}
+#start-screen .menu a {
+    color: #000;
+    text-decoration: none;
+    font-size: 20px;
+    transition: 0.3s;
+}
+
+#start-screen .menu a:hover {
+    
+    transform: translateY(-5px)
+}
+#start-screen .hero-content {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 55%;
+    max-width: 700px;
+    padding: 45px;
+    background: rgba(255, 255, 255, 0.45);
+}
+#start-screen .intro {
+    margin-bottom: 25px;
+    font-size: 27px;
+    font-weight: 400;
+    color: #000;
+}
+#start-screen .intro-text {
+    margin-bottom: 15px;
+    font-size: 18px;
+    line-height: 1.5;
+    color: #000;
+}
+#start-screen .intro-text:last-child {
+    margin-bottom: 0;
+}
+
+
+@media (max-width: 768px) {
+
+    #start-screen .header {
+        padding: 25px 20px;
+    }
+
+    #start-screen .logo {
+        font-size: 22px;
+    }
+
+    #start-screen .menu {
+        gap: 20px;
+    }
+
+    #start-screen .menu a {
+        font-size: 16px;
+    }
+
+    #start-screen .hero-content {
+        width: 90%;
+        padding: 25px;
+    }
+
+    #start-screen .intro {
+        font-size: 24px;
+    }
+
+    #start-screen .intro-text {
+        font-size: 16px;
+    }
+}
+
 
