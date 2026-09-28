@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Карта України</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            height: 70px;
+            width: 100%;
+            background: #5C766D;
+            color: white;
+            position: relative;
+            z-index: 2000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-content {
+            width: 100%;
+            height: 100%;
+            padding: 0 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .home-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 42px;
+            padding: 0 24px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .home-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 70px);
+        }
+
+        .city-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #222;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            text-align: center;
+            text-shadow:
+                1px 1px 2px white,
+                -1px -1px 2px white,
+                1px -1px 2px white,
+                -1px 1px 2px white;
+            pointer-events: auto;
+        }
+
+        .region-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #222;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+            text-shadow:
+                1px 1px 3px white,
+                -1px -1px 3px white,
+                1px -1px 3px white,
+                -1px 1px 3px white;
+        }
+
+        #infoOverlay {
+            display: none;
+            position: fixed;
+            z-index: 5000;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+        }
+
+        #infoWindow {
+            position: relative;
+            width: 1150px;
+            height: 720px;
+            max-width: 96vw;
+            max-height: 92vh;
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+        }
+
+        .window-content {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 35px;
+        }
+
+        .photo-section {
+            min-width: 0;
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+
+        .text-section {
+            min-width: 0;
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px 15px 20px 5px;
+        }
+
+        .photo-section::-webkit-scrollbar,
+        .text-section::-webkit-scrollbar {
+            width: 9px;
+        }
+
+        .photo-section::-webkit-scrollbar-track,
+        .text-section::-webkit-scrollbar-track {
+            background: #eeeeee;
+            border-radius: 10px;
+        }
+
+        .photo-section::-webkit-scrollbar-thumb,
+        .text-section::-webkit-scrollbar-thumb {
+            background: #5C766D;
+            border-radius: 10px;
+        }
+
+        .photo-section::-webkit-scrollbar-thumb:hover,
+        .text-section::-webkit-scrollbar-thumb:hover {
+            background: #465d56;
+        }
+
+        .photo-card {
+            margin-bottom: 22px;
+        }
+
+        .region-photo {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+            border-radius: 18px;
+            background: #eeeeee;
+        }
+
+        .photo-caption {
+            margin-top: 8px;
+            color: #777;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .photo-caption a {
+            color: #5C766D;
+            text-decoration: none;
+        }
+
+        .photo-caption a:hover {
+            text-decoration: underline;
+        }
+
+        .photo-loading {
+            height: 300px;
+            border-radius: 18px;
+            background: #eeeeee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 18px;
+        }
+
+        #regionTitle {
+            margin: 0 55px 30px 0;
+            color: #333;
+            font-size: 40px;
+            line-height: 1.2;
+        }
+
+        #regionInfo {
+            color: #444;
+            font-size: 20px;
+            line-height: 1.8;
+        }
+
+        #regionInfo p {
+            margin: 0 0 22px 0;
+        }
+
+        #closeButton {
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            z-index: 10;
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 50%;
+            background: #eeeeee;
+            color: #444;
+            font-size: 31px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #closeButton:hover {
+            background: #5C766D;
+            color: white;
+        }
+
+        @media (max-width: 800px) {
+            #infoWindow {
+                height: 90vh;
+                padding: 20px;
+            }
+
+            .window-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                overflow-y: auto;
+            }
+
+            .photo-section {
+                height: 350px;
+            }
+
+            .text-section {
+                height: 350px;
+            }
+
+            .region-photo,
+            .photo-loading {
+                height: 300px;
+            }
+
+            #regionTitle {
+                font-size: 30px;
+            }
+
+            #regionInfo {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            #infoOverlay {
+                padding: 10px;
+            }
+
+            #infoWindow {
+                width: 100%;
+                max-width: 100%;
+                height: 95vh;
+                padding: 15px;
+                border-radius: 18px;
+            }
+
+            .photo-section {
+                height: 280px;
+            }
+
+            .text-section {
+                height: 300px;
+            }
+
+            .region-photo,
+            .photo-loading {
+                height: 260px;
+            }
+
+            #regionTitle {
+                font-size: 27px;
+            }
+
+            #regionInfo {
+                font-size: 16px;
+                line-height: 1.65;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="header-content">
+        <div class="logo">Карта України</div>
+
+        <a href="index.html" class="home-button">
+            Головна
+        </a>
+    </div>
+</header>
+
+<div id="map"></div>
+
+<div id="infoOverlay">
+
+    <div id="infoWindow">
+
+        <button id="closeButton">&times;</button>
+
+        <div class="window-content">
+
+            <div class="photo-section" id="photoSection">
+                <div class="photo-loading">
+                    Завантаження фотографій...
+                </div>
+            </div>
+
+            <div class="text-section">
+
+                <h2 id="regionTitle"></h2>
+
+                <div id="regionInfo"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    const map = L.map("map");
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            attribution: "&copy; OpenStreetMap contributors"
+        }
+    ).addTo(map);
+
+    const cities = [
+        { name: "Луцьк", lat: 50.7472, lng: 25.3254 },
+        { name: "Рівне", lat: 50.6199, lng: 26.2516 },
+        { name: "Житомир", lat: 50.2547, lng: 28.6587 },
+        { name: "Київ", lat: 50.4501, lng: 30.5234 },
+        { name: "Чернігів", lat: 51.4982, lng: 31.2893 },
+        { name: "Суми", lat: 50.9077, lng: 34.7981 },
+        { name: "Харків", lat: 49.9935, lng: 36.2304 },
+        { name: "Львів", lat: 49.8397, lng: 24.0297 },
+        { name: "Тернопіль", lat: 49.5535, lng: 25.5948 },
+        { name: "Хмельницький", lat: 49.4230, lng: 27.0084 },
+        { name: "Чернівці", lat: 48.2915, lng: 25.9403 },
+        { name: "Івано-Франківськ", lat: 48.9226, lng: 24.7111 },
+        { name: "Ужгород", lat: 48.6208, lng: 22.2879 },
+        { name: "Вінниця", lat: 49.2331, lng: 28.4682 },
+        { name: "Черкаси", lat: 49.4444, lng: 32.0598 },
+        { name: "Полтава", lat: 49.5883, lng: 34.5514 },
+        { name: "Кропивницький", lat: 48.5079, lng: 32.2623 },
+        { name: "Дніпро", lat: 48.4647, lng: 35.0462 },
+        { name: "Запоріжжя", lat: 47.8388, lng: 35.1396 },
+        { name: "Донецьк", lat: 48.0159, lng: 37.8028 },
+        { name: "Луганськ", lat: 48.5740, lng: 39.3078 },
+        { name: "Миколаїв", lat: 46.9750, lng: 31.9946 },
+        { name: "Херсон", lat: 46.6354, lng: 32.6169 },
+        { name: "Одеса", lat: 46.4825, lng: 30.7233 }
+    ];
+
+    const regionNames = {
+        "Волинська область": "Volyn Oblast",
+        "Рівненська область": "Rivne Oblast",
+        "Житомирська область": "Zhytomyr Oblast",
+        "Київська область": "Kyiv Oblast",
+        "Чернігівська область": "Chernihiv Oblast",
+        "Сумська область": "Sumy Oblast",
+        "Харківська область": "Kharkiv Oblast",
+        "Львівська область": "Lviv Oblast",
+        "Тернопільська область": "Ternopil Oblast",
+        "Хмельницька область": "Khmelnytskyi Oblast",
+        "Чернівецька область": "Chernivtsi Oblast",
+        "Івано-Франківська область": "Ivano-Frankivsk Oblast",
+        "Закарпатська область": "Zakarpattia Oblast",
+        "Вінницька область": "Vinnytsia Oblast",
+        "Черкаська область": "Cherkasy Oblast",
+        "Полтавська область": "Poltava Oblast",
+        "Кіровоградська область": "Kirovohrad Oblast",
+        "Дніпропетровська область": "Dnipropetrovsk Oblast",
+        "Запорізька область": "Zaporizhzhia Oblast",
+        "Донецька область": "Donetsk Oblast",
+        "Луганська область": "Luhansk Oblast",
+        "Миколаївська область": "Mykolaiv Oblast",
+        "Херсонська область": "Kherson Oblast",
+        "Одеська область": "Odesa Oblast"
+    };
+
+    const regionInfo = {
+        "Волинська область": "Волинська область розташована на північному заході України. Регіон відомий мальовничими лісами, озерами Шацької групи та історичними містами. Адміністративний центр області — Луцьк.",
+
+        "Рівненська область": "Рівненська область розташована на північному заході України. Значну частину території займають ліси та природні території Полісся. Серед відомих місць — Тунель кохання, Дубенський замок та мальовничі поліські ландшафти. Адміністративний центр — Рівне.",
+
+        "Житомирська область": "Житомирська область розташована на півночі України. Регіон відомий лісами Полісся, скелями Тетерівського каньйону та природними пам’ятками. Область також пов’язана з ім’ям Сергія Корольова. Адміністративний центр — Житомир.",
+
+        "Київська область": "Київська область розташована в центральній та північній частині України. Територією області протікає Дніпро, а серед відомих місць — дендропарк «Олександрія», Чорнобильська зона та мальовничі природні території. Адміністративний центр — Київ.",
+
+        "Чернігівська область": "Чернігівська область розташована на півночі України. Регіон відомий давньою історією, лісами Полісся, річкою Десною та великою кількістю пам’яток Київської Русі. Адміністративний центр — Чернігів.",
+
+        "Сумська область": "Сумська область розташована на північному сході України. Тут поєднуються лісові та степові природні зони, а територією області протікає багато річок. Адміністративний центр — Суми.",
+
+        "Харківська область": "Харківська область розташована на сході України. Регіон має значний промисловий, науковий та освітній потенціал, а його територія охоплює частини лісостепової та степової зон. Адміністративний центр — Харків.",
+
+        "Львівська область": "Львівська область розташована на заході України. Регіон відомий Карпатами, Сколівськими Бескидами, історичними містами, замками та великою культурною спадщиною. Адміністративний центр — Львів.",
+
+        "Тернопільська область": "Тернопільська область розташована на заході України. Регіон відомий замками, каньйонами, печерами та мальовничими долинами річок. Одним із найвідоміших природних об’єктів є Дністровський каньйон. Адміністративний центр — Тернопіль.",
+
+        "Хмельницька область": "Хмельницька область розташована в західній частині України. Особливо відомими є Кам’янець-Подільський, його фортеця, Дністровський каньйон та природні ландшафти Поділля. Адміністративний центр — Хмельницький.",
+
+        "Чернівецька область": "Чернівецька область розташована на заході України. Регіон охоплює Буковину, передгір’я Карпат та долину Дністра. Тут розташовані Хотинська фортеця, мальовничі каньйони та гірські ландшафти. Адміністративний центр — Чернівці.",
+
+        "Івано-Франківська область": "Івано-Франківська область розташована в західній частині України. Значну частину регіону займають Українські Карпати, тому область відома горами, водоспадами, лісами та туристичними маршрутами. Адміністративний центр — Івано-Франківськ.",
+
+        "Закарпатська область": "Закарпатська область розташована на крайньому заході України. Регіон відомий Карпатами, гірськими долинами, водоспадами, замками та багатокультурною спадщиною. Адміністративний центр — Ужгород.",
+
+        "Вінницька область": "Вінницька область розташована в центрально-західній частині України. Територією області протікає Південний Буг, а регіон має багато мальовничих природних та історичних місць. Адміністративний центр — Вінниця.",
+
+        "Черкаська область": "Черкаська область розташована в центральній частині України. Регіон тісно пов’язаний з історією українського козацтва та має мальовничі береги Дніпра, ліси й історичні пам’ятки. Адміністративний центр — Черкаси.",
+
+        "Полтавська область": "Полтавська область розташована в центральній частині України. Регіон має важливу історичну та культурну спадщину, мальовничі лісостепові пейзажі та багато пам’яток української літератури. Адміністративний центр — Полтава.",
+
+        "Кіровоградська область": "Кіровоградська область розташована в центральній частині України. Регіон лежить переважно в межах степової та лісостепової зон і відомий мальовничими долинами річок та природними ландшафтами. Адміністративний центр — Кропивницький.",
+
+        "Дніпропетровська область": "Дніпропетровська область розташована в центрально-східній частині України. Регіон відомий Дніпром, великими промисловими містами, степовими ландшафтами та природними каньйонами. Адміністративний центр — Дніпро.",
+
+        "Запорізька область": "Запорізька область розташована на південному сході України. Регіон має важливе промислове значення та тісно пов’язаний з історією українського козацтва. Одним із найвідоміших місць є острів Хортиця.",
+
+        "Донецька область": "Донецька область розташована на сході України. Регіон історично був одним із головних промислових центрів країни та має різноманітні степові ландшафти. Адміністративний центр — Донецьк.",
+
+        "Луганська область": "Луганська область розташована на крайньому сході України. Територія області переважно лежить у степовій зоні та історично пов’язана з промисловістю Донбасу. Адміністративний центр — Луганськ.",
+
+        "Миколаївська область": "Миколаївська область розташована на півдні України. Регіон має вихід до Чорного моря, лиманів та степових просторів. Область також має важливе значення для суднобудування. Адміністративний центр — Миколаїв.",
+
+        "Херсонська область": "Херсонська область розташована на півдні України та має вихід до Чорного моря. Регіон відомий степовими ландшафтами, Дніпром, лиманами та природними територіями. Адміністративний центр — Херсон.",
+
+        "Одеська область": "Одеська область розташована на південному заході України та має узбережжя Чорного моря. Регіон відомий морськими пейзажами, лиманами, портами, фортецями та різноманітною культурною спадщиною. Адміністративний центр — Одеса."
+    };
+
+    function getRegionName(feature) {
+        const properties = feature.properties || {};
+
+        const possibleNames = [
+            properties.name,
+            properties.NAME,
+            properties.Name,
+            properties.name_1,
+            properties.NAME_1,
+            properties.NAME_UA,
+            properties.name_ua,
+            properties.region,
+            properties.Region,
+            properties.oblast,
+            properties.Oblast
+        ];
+
+        for (const name of possibleNames) {
+            if (name) {
+                return normalizeRegionName(String(name).trim());
+            }
+        }
+
+        return "Область";
+    }
+
+    function normalizeRegionName(name) {
+        const replacements = {
+            "Волинська": "Волинська область",
+            "Рівненська": "Рівненська область",
+            "Житомирська": "Житомирська область",
+            "Київська": "Київська область",
+            "Чернігівська": "Чернігівська область",
+            "Сумська": "Сумська область",
+            "Харківська": "Харківська область",
+            "Львівська": "Львівська область",
+            "Тернопільська": "Тернопільська область",
+            "Хмельницька": "Хмельницька область",
+            "Чернівецька": "Чернівецька область",
+            "Івано-Франківська": "Івано-Франківська область",
+            "Закарпатська": "Закарпатська область",
+            "Вінницька": "Вінницька область",
+            "Черкаська": "Черкаська область",
+            "Полтавська": "Полтавська область",
+            "Кіровоградська": "Кіровоградська область",
+            "Дніпропетровська": "Дніпропетровська область",
+            "Запорізька": "Запорізька область",
+            "Донецька": "Донецька область",
+            "Луганська": "Луганська область",
+            "Миколаївська": "Миколаївська область",
+            "Херсонська": "Херсонська область",
+            "Одеська": "Одеська область"
+        };
+
+        if (replacements[name]) {
+            return replacements[name];
+        }
+
+        if (!name.includes("область")) {
+            return name + " область";
+        }
+
+        return name;
+    }
+
+    function getCategoryNames(regionName) {
+        const englishName = regionNames[regionName];
+
+        return [
+            "Featured pictures of " + englishName,
+            "Quality images of " + englishName,
+            englishName
+        ];
+    }
+
+    async function getPhotosFromCategory(categoryName) {
+        const url =
+            "https://commons.wikimedia.org/w/api.php" +
+            "?action=query" +
+            "&generator=categorymembers" +
+            "&gcmtitle=Category:" + encodeURIComponent(categoryName) +
+            "&gcmtype=file" +
+            "&gcmlimit=30" +
+            "&prop=imageinfo" +
+            "&iiprop=url" +
+            "&format=json" +
+            "&origin=*";
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return [];
+        }
+
+        const data = await response.json();
+
+        if (!data.query || !data.query.pages) {
+            return [];
+        }
+
+        return Object.values(data.query.pages)
+            .filter(page => page.imageinfo && page.imageinfo[0])
+            .filter(page => {
+                const title = page.title.toLowerCase();
+
+                return !title.includes("map")
+                    && !title.includes("locator")
+                    && !title.includes("flag")
+                    && !title.includes("coat of arms")
+                    && !title.includes("logo")
+                    && !title.includes("diagram")
+                    && !title.includes("blank");
+            });
+    }
+
+    async function loadRegionPhotos(regionName) {
+        const photoSection = document.getElementById("photoSection");
+
+        photoSection.innerHTML = `
+            <div class="photo-loading">
+                Завантаження...
+            </div>
+        `;
+
+        const categories = getCategoryNames(regionName);
+
+        let photos = [];
+
+        for (const category of categories) {
+            try {
+                const result = await getPhotosFromCategory(category);
+
+                for (const photo of result) {
+                    if (!photos.some(item => item.title === photo.title)) {
+                        photos.push(photo);
+                    }
+
+                    if (photos.length >= 3) {
+                        break;
+                    }
+                }
+
+                if (photos.length >= 3) {
+                    break;
+                }
+            } catch (error) {
+            }
+        }
+
+        photoSection.innerHTML = "";
+
+        if (photos.length === 0) {
+            photoSection.innerHTML = `
+                <div class="photo-loading">
+                    Фото не знайдено
+                </div>
+            `;
+            return;
+        }
+
+        photos.slice(0, 3).forEach(photo => {
+            const card = document.createElement("div");
+            card.className = "photo-card";
+
+            const image = document.createElement("img");
+            image.className = "region-photo";
+            image.src = photo.imageinfo[0].url;
+            image.alt = regionName;
+            image.loading = "lazy";
+
+            const caption = document.createElement("div");
+            caption.className = "photo-caption";
+
+            const link = document.createElement("a");
+            link.href = "https://commons.wikimedia.org/wiki/" +
+                encodeURIComponent(photo.title.replaceAll(" ", "_"));
+            link.target = "_blank";
+            link.textContent = photo.title.replace("File:", "");
+
+            caption.appendChild(link);
+
+            card.appendChild(image);
+            card.appendChild(caption);
+
+            photoSection.appendChild(card);
+        });
+    }
+
+    function showRegion(regionName) {
+        regionName = normalizeRegionName(regionName);
+
+        document.getElementById("regionTitle").textContent = regionName;
+
+        document.getElementById("regionInfo").innerHTML =
+            "<p>" +
+            (
+                regionInfo[regionName] ||
+                "Інформація про цю область поки що відсутня."
+            ) +
+            "</p>";
+
+        document.getElementById("infoOverlay").style.display = "flex";
+
+        document.getElementById("photoSection").scrollTop = 0;
+        document.querySelector(".text-section").scrollTop = 0;
+
+        loadRegionPhotos(regionName);
+    }
+
+    document.getElementById("closeButton").onclick = function() {
+        document.getElementById("infoOverlay").style.display = "none";
+    };
+
+    document.getElementById("infoOverlay").onclick = function(event) {
+        if (event.target === this) {
+            this.style.display = "none";
+        }
+    };
+
+    fetch(
+        "https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/regiony.geojson"
+    )
+    .then(response => response.json())
+    .then(data => {
+
+        const regions = L.geoJSON(data, {
+
+            style: {
+                color: "#ffffff",
+                weight: 1.5,
+                fillColor: "#5C766D",
+                fillOpacity: 0.65
+            },
+
+            onEachFeature: function(feature, layer) {
+
+                const regionName = getRegionName(feature);
+
+                layer.on({
+
+                    mouseover: function() {
+                        layer.setStyle({
+                            fillColor: "#C9996B",
+                            fillOpacity: 0.85,
+                            weight: 2
+                        });
+                    },
+
+                    mouseout: function() {
+                        layer.setStyle({
+                            fillColor: "#5C766D",
+                            fillOpacity: 0.65,
+                            weight: 1.5
+                        });
+                    },
+
+                    click: function() {
+                        showRegion(regionName);
+                    }
+                });
+
+                layer.bindTooltip(
+                    regionName,
+                    {
+                        className: "region-label",
+                        direction: "center",
+                        sticky: true
+                    }
+                );
+            }
+
+        }).addTo(map);
+
+        cities.forEach(city => {
+
+            const marker = L.marker(
+                [city.lat, city.lng],
+                {
+                    interactive: true,
+
+                    icon: L.divIcon({
+                        className: "city-label",
+                        html: city.name,
+                        iconSize: [130, 20],
+                        iconAnchor: [65, 10]
+                    })
+                }
+            ).addTo(map);
+
+        });
+
+        map.fitBounds(
+            regions.getBounds(),
+            {
+                padding: [10, 10]
+            }
+        );
+
+        map.setMinZoom(map.getZoom());
+    });
+</script>
+
+</body>
+</html>
