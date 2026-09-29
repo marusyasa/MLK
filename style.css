@@ -1,4 +1,4 @@
-.region-label {
+#main-screen .region-label {
     background: transparent;
     border: none;
     box-shadow: none;
@@ -16,7 +16,7 @@
 
     pointer-events: none;
 }
-.header {
+#main-screen .header {
     height: 65px;
     width: 100%;
     background: #5C766D;
