@@ -1,4 +1,4 @@
-```javascript
+
 const map = L.map("map", {
     center: [48.5, 31.2],
     zoom: 6,
@@ -208,7 +208,7 @@ const regionInfo = {
     "Чернівецька область": {
         title: "Чернівецька область",
         text: `
-            <p><b>Центр:</b> Чернівці</p>
+            <p><b>Центр:</b> Чернівці</p>;
             <p><b>Площа:</b> 8 097 км²</p>
             <p><b>Опис:</b> Найменша за площею область України.</p>
         `
@@ -487,4 +487,4 @@ document.addEventListener("keydown", function(event) {
     }
 
 });
-```
+
