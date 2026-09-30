@@ -221,6 +221,15 @@ const regionInfo = {
             <p><b>Площа:</b> 31 865 км²</p>
             <p><b>Опис:</b> Розташована на півночі України.</p>
         `
+    },
+    "Крим": {
+        title: "Крим",
+        text: `
+            <p><b>Центр:</b> Сімферополь</p>
+            <p><b>Площа:</b> 26 945 км²</p>
+            <p><b>Опис:</b> Півострів на півдні України, омивається Чорним та Азовським морями.</p>
+            <p><b>Цікавий факт:</b> У Криму розташована одна з найдовших у Європі печерних систем — Кизил-Коба.</p>
+        `
     }
 };
 
@@ -487,4 +496,46 @@ document.addEventListener("keydown", function(event) {
     }
 
 });
+if (regionInfo["Крим"]) {
+    regionInfo["Автономна Республіка Крим"] = regionInfo["Крим"];
+    regionInfo["Севастополь"] = regionInfo["Крим"];
+    regionInfo["м. Севастополь"] = regionInfo["Крим"];
+    regionInfo["Crimea"] = regionInfo["Крим"];
+}
 
+// 2. Обновленная функция открытия окна
+function openRegionInfo(name) {
+    console.log("Клик по региону:", name); // Показывает точное имя в F12 -> Console
+
+    const overlay = document.getElementById("infoOverlay");
+    const title = document.getElementById("regionTitle");
+    const info = document.getElementById("regionInfo");
+
+    if (!overlay || !title || !info) return;
+
+    // Если в name пришло любое название Крыма или Севастополя — сводим к ключу "Крим"
+    let key = name;
+    if (key) {
+        const lower = key.toLowerCase();
+        if (
+            lower.includes("крим") || 
+            lower.includes("crimea") || 
+            lower.includes("krym") || 
+            lower.includes("севастополь") || 
+            lower.includes("sevastopol")
+        ) {
+            key = "Крим";
+        }
+    }
+
+    // Проверяем наличие ключа в regionInfo
+    if (regionInfo[key]) {
+        title.textContent = regionInfo[key].title;
+        info.innerHTML = regionInfo[key].text;
+    } else {
+        title.textContent = name || "Невідомый регіон";
+        info.innerHTML = `<p>Інформація про область поки що не додана.</p>`;
+    }
+
+    overlay.style.display = "flex";
+}

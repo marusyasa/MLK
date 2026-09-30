@@ -143,12 +143,42 @@ body {
 
 @media (max-width: 768px) {
 
+
     #start-screen .header {
-        padding: 25px 20px;
+        padding: 20px 15px;
     }
 
     #start-screen .logo {
-        font-size: 22px;
+        font-size: 20px;
+    }
+
+    
+    #start-screen .menu {
+        gap: 20px; 
+    }
+
+    #start-screen .menu a {
+        font-size: 16px;
+    }
+
+   
+    #start-screen .hero-content {
+        width: 90%;          
+        padding: 25px 20px;  
+        border-radius: 12px; 
+    }
+
+   
+    #start-screen .intro {
+        font-size: 20px;
+        margin-bottom: 15px;
+        text-align: center;  
+    }
+
+    
+    #start-screen .intro-text {
+        font-size: 15px;
+        line-height: 1.4;
     }
 
 }
